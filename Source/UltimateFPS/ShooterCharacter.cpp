@@ -9,6 +9,7 @@
 #include "Sound/SoundCue.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Particles/ParticleSystem.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() : BaseTurnRate(45.f), BaseLookUpRate(45.f)
@@ -107,6 +108,20 @@ void AShooterCharacter::FireWeapon()
 		if (MuzzleFlash)
 		{
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+		}
+
+		FHitResult FireHit;
+		const FVector Start{ SocketTransform.GetLocation() };
+		const FQuat Rotation{ SocketTransform.GetRotation() };
+		const FVector RotationAxis{ Rotation.GetAxisX() }; // This is the same as the xaxis of our socket
+		const FVector End{ Start + RotationAxis * 50'000.f }; // 50,000 is the length of the LineTrace
+
+		GetWorld()->LineTraceSingleByChannel(FireHit, Start, End, ECollisionChannel::ECC_Visibility);
+
+		if (FireHit.bBlockingHit)
+		{
+			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.f);
+			DrawDebugPoint(GetWorld(), FireHit.Location, 5.f, FColor::Red, false, 2.f);
 		}
 	}
 }
